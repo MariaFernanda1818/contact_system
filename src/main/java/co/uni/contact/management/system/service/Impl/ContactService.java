@@ -4,6 +4,7 @@ import co.uni.contact.management.system.dto.ContactDTO;
 import co.uni.contact.management.system.entity.ContactEntity;
 import co.uni.contact.management.system.repository.ContactRepository;
 import co.uni.contact.management.system.service.IContactService;
+import co.uni.contact.management.system.utils.exceptions.ResourceNotFoundException;
 import co.uni.contact.management.system.utils.mappers.ContactMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,7 +51,7 @@ public class ContactService implements IContactService {
     public ContactDTO fetchContactById(Long id) {
         Optional<ContactEntity> contactOpt = contactRepository.findById(id);
         return contactOpt.map(contactMapper::entityToDto)
-                .orElseThrow(() -> new RuntimeException("Contact not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Contact not found with ID: " + id));
     }
 
     @Override
@@ -58,8 +59,9 @@ public class ContactService implements IContactService {
         if (contactRepository.existsById(id)) {
             contactRepository.deleteById(id);
             return true;
+        } else {
+            throw new ResourceNotFoundException("Contact not found with ID: " + id);
         }
-        return false;
     }
 
     @Override
@@ -74,11 +76,11 @@ public class ContactService implements IContactService {
             existingContact.setAddress(contact.getAddress());
             existingContact.setBirthDate(contact.getBirthDate());
 
-
             ContactEntity updatedEntity = contactRepository.save(existingContact);
             return contactMapper.entityToDto(updatedEntity);
         } else {
-            throw new RuntimeException("Contact not found with ID: " + contactId);
+            throw new ResourceNotFoundException("Contact not found with ID: " + contactId);
         }
     }
+
 }
